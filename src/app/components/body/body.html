@@ -1,0 +1,13 @@
+<div id="text-box">
+    <span class="text-to-match" *ngFor="let textToMatch of this.textsToMatchToDisplay" 
+    [ngClass]="{'correct-word' : textToMatch.StatusId == TextToMatchStatuses.Correct,
+                'incorrect-word' : textToMatch.StatusId == TextToMatchStatuses.Incorrect}">
+        {{ textToMatch.Word }}
+    </span>
+</div>
+
+<div id="input-box">
+    <input type="text" id="text-input-box" [(ngModel)]="userTextInput" (keyup)="onKeyUp($event)" autofocus />
+    <div id="timer">1:00</div>
+    <button id="refresh-button" (click)="refresh()"></button>
+</div>

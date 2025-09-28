@@ -1,16 +1,19 @@
-import { Component, OnInit } from '@angular/core';
-import { NgForOf } from '@angular/common'; // Add this import
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { AsyncPipe, NgForOf, NgIf } from '@angular/common'; // Add this import
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { TextToMatch } from '../../shared/models/TextToMatch';
 import { TextToMatchStatuses } from '../../shared/enums/TextToMatchStatuses';
+import { exhaustMap, interval, map, Observable, shareReplay, startWith, Subject, takeWhile, } from 'rxjs';
+import { ScoreBoard } from '../score-board/score-board';
 
 @Component({
   selector: 'app-body',
   standalone: true,
-  imports: [NgForOf, FormsModule, NgClass], // Add NgForOf here
+  imports: [NgForOf, FormsModule, NgClass, AsyncPipe, ScoreBoard, NgIf], // Add NgForOf here
   templateUrl: './body.html',
-  styleUrls: ['./body.css']
+  styleUrls: ['./body.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Body implements OnInit {
   textsToMatch: TextToMatch[] = [];
@@ -20,6 +23,22 @@ export class Body implements OnInit {
   maxLentghOfTextToDisplay: number = 3; // max number of words to display in text-box
 
   public TextToMatchStatuses = TextToMatchStatuses;
+
+  private inputStart$ = new Subject<void>();
+  public readonly startingOfTimer: number = 5;
+
+  public remaining$?: Observable<number> = this.inputStart$.pipe(
+    exhaustMap(() =>
+      interval(1000).pipe(
+        map(i => this.startingOfTimer - (i + 1)),
+        startWith(this.startingOfTimer),
+        takeWhile(v => v > 0, true)
+      )
+    ),
+    startWith(this.startingOfTimer),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );;
+  // continue with displaying 60 at the start until user first input a text
 
   constructor() { }
 
@@ -37,8 +56,25 @@ export class Body implements OnInit {
     }
   }
 
+  setTimersInitals() {
+    this.remaining$ = this.inputStart$.pipe(
+      exhaustMap(() =>
+        interval(1000).pipe(
+          map(i => this.startingOfTimer - (i + 1)),
+          startWith(this.startingOfTimer),
+          takeWhile(v => v > 0, true)
+        )
+      ),
+      startWith(this.startingOfTimer),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+  }
+
   onKeyUp(event: KeyboardEvent): void {
     try {
+
+      this.startTimer();
+
       let currentTextToMatch: TextToMatch = this.textsToMatch.find(nextText => !nextText.IsSubmitted)!;
 
       this.isTextBeenTypingCorrectly(currentTextToMatch);
@@ -104,11 +140,22 @@ export class Body implements OnInit {
   }
 
   refresh() {
-
+    // this.stopTimer();
+    this.userTextInput = '';
+    this.getTexts();
+    this.setTimersInitals();
   }
 
   setTextsToMatchToDisplay(startingIndex: number): TextToMatch[] {
     return this.textsToMatch.slice(startingIndex, startingIndex + this.maxLentghOfTextToDisplay);
   }
+
+  startTimer() {
+    this.inputStart$.next();
+  }
+
+  // stopTimer() {
+  //   this.inputStart$.unsubscribe();
+  // }
 
 }

@@ -1,0 +1,59 @@
+:host {
+  display: block;
+}
+
+.side-bar {
+  position: sticky;
+  top: 0;
+  width: 220px;
+  height: 100%;
+  background-color: #f1f6ff;
+  border-right: 1px solid #d9e4f5;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.side-bar__title {
+  font-weight: 600;
+  color: #0f2b46;
+}
+
+.mode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mode-button {
+  background: #ffffff;
+  border: 1px solid #c8d6ed;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  color: #0f2b46;
+  cursor: pointer;
+}
+
+.mode-button:hover {
+  border-color: #9fb9e0;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.login-button {
+  background: #0f62fe;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background: #0c52d1;
+}

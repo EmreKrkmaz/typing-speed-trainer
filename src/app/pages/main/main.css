@@ -1,0 +1,28 @@
+.main-layout {
+  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-header,
+.main-footer {
+  display: block;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+app-side-bar {
+  flex-shrink: 0;
+}
+
+.content-area {
+  flex: 1;
+  padding: 24px;
+  box-sizing: border-box;
+  min-width: 0;
+}

@@ -1,1 +1,36 @@
-<p>score-board works!</p>
+<div class="score-board">
+    <div class="score-summary">
+        <span class="summary-item correct">Correct: {{ correctWords.length }}</span>
+        <span class="summary-sep">|</span>
+        <span class="summary-item incorrect">Incorrect: {{ incorrectWords.length }}</span>
+    </div>
+
+    <button type="button" class="details-toggle" (click)="toggleDetails()">
+        <img *ngIf="showDetails" class="details-icon" src="shared-assets/icons/double-chevron-down.svg" alt="" aria-hidden="true" />
+        <span>{{ showDetails ? 'Hide details' : 'See more details' }}</span>
+    </button>
+
+    <div *ngIf="showDetails" class="score-details">
+        <ng-container *ngIf="correctWords.length > 0 || incorrectWords.length > 0; else emptyState">
+            <div class="details-column">
+                <div class="details-title correct">Correct words</div>
+                <div class="word-list correct">
+                    <div *ngFor="let item of correctWordCounts">{{ item.word }} x{{ item.count }}</div>
+                </div>
+            </div>
+
+            <div class="details-divider"></div>
+
+            <div class="details-column">
+                <div class="details-title incorrect">Incorrect words</div>
+                <div class="word-list incorrect">
+                    <div *ngFor="let item of incorrectWordCounts">{{ item.word }} x{{ item.count }}</div>
+                </div>
+            </div>
+        </ng-container>
+
+        <ng-template #emptyState>
+            <div class="empty-state">No submitted words yet.</div>
+        </ng-template>
+    </div>
+</div>

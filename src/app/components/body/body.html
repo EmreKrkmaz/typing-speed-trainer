@@ -1,19 +1,21 @@
-<div id="text-box">
-    <span class="text-to-match" *ngFor="let textToMatch of this.textsToMatchToDisplay" [ngClass]="{'correct-word' : textToMatch.StatusId == TextToMatchStatuses.Correct,
-                'incorrect-word' : textToMatch.StatusId == TextToMatchStatuses.Incorrect}">
+<div id="text-box" #textBox>
+    <span class="text-to-match" *ngFor="let textToMatch of this.textsToMatchToDisplay" [ngClass]="{
+        'submitted-correct': textToMatch.IsSubmitted && textToMatch.StatusId == TextToMatchStatuses.Correct,
+        'submitted-incorrect': textToMatch.IsSubmitted && textToMatch.StatusId == TextToMatchStatuses.Incorrect
+    }">
         {{ textToMatch.Word }}
     </span>
 </div>
 
 <div id="input-box">
     <input [disabled]="(remaining$ | async) === 0" type="text" id="text-input-box" [(ngModel)]="userTextInput"
-        (keyup)="onKeyUp($event)" />
+        (keydown.space)="onSpace($event)" (keyup)="onKeyUp($event)" />
     <div id="timer"> {{remaining$ | async}} </div>
-    <button id="refresh-button" (click)="refresh()"></button>
+    <button id="refresh-button" (click)="refresh()">Refresh</button>
 </div>
 
 <div *ngIf="(remaining$ | async) === 0">
-    <app-score-board>
+    <app-score-board [textsToMatch]="textsToMatch">
 
     </app-score-board>
 </div>

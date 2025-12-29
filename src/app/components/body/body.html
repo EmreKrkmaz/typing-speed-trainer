@@ -1,4 +1,11 @@
 <div id="text-box" #textBox>
+    <div id="language-select">
+        <label for="language-select-input">Language</label>
+        <select id="language-select-input" [(ngModel)]="selectedLanguage"
+            (ngModelChange)="onLanguageChange($event)" [disabled]="isChallengeStarted">
+            <option *ngFor="let option of languageOptions" [ngValue]="option.value">{{ option.label }}</option>
+        </select>
+    </div>
     <span class="text-to-match" *ngFor="let textToMatch of this.textsToMatchToDisplay" [ngClass]="{
         'submitted-correct': textToMatch.IsSubmitted && textToMatch.StatusId == TextToMatchStatuses.Correct,
         'submitted-incorrect': textToMatch.IsSubmitted && textToMatch.StatusId == TextToMatchStatuses.Incorrect

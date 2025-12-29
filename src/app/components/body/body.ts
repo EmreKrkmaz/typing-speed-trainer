@@ -1,11 +1,12 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnInit, ViewChild } from '@angular/core';
 import { AsyncPipe, NgForOf, NgIf } from '@angular/common'; // Add this import
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { TextToMatch } from '../../shared/models/TextToMatch';
 import { TextToMatchStatuses } from '../../shared/enums/TextToMatchStatuses';
-import { exhaustMap, interval, map, Observable, shareReplay, startWith, Subject, takeWhile, } from 'rxjs';
+import { exhaustMap, firstValueFrom, interval, map, Observable, shareReplay, startWith, Subject, takeWhile, } from 'rxjs';
 import { ScoreBoard } from '../score-board/score-board';
+import { WordApiService } from '../../shared/services/word-api.service';
 
 @Component({
   selector: 'app-body',
@@ -25,6 +26,17 @@ export class Body implements OnInit, AfterViewInit {
   maxLentghOfTextToDisplay: number = 0; // max number of words to display in text-box
 
   public TextToMatchStatuses = TextToMatchStatuses;
+  public readonly languageOptions: Array<{ label: string; value: string }> = [
+    { label: 'English', value: '' },
+    { label: 'Spanish', value: 'es' },
+    { label: 'Italian', value: 'it' },
+    { label: 'German', value: 'de' },
+    { label: 'French', value: 'fr' },
+    { label: 'Chinese', value: 'zh' },
+    { label: 'Brazilian Portuguese', value: 'pt-br' }
+  ];
+  public selectedLanguage = '';
+  public isChallengeStarted = false;
 
   private inputStart$ = new Subject<void>();
   public readonly startingOfTimer: number = 60;
@@ -42,10 +54,14 @@ export class Body implements OnInit, AfterViewInit {
   );;
   // continue with displaying 60 at the start until user first input a text
 
-  constructor() { }
+  constructor(
+    private readonly wordApiService: WordApiService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
+    private readonly ngZone: NgZone
+  ) { }
 
   ngOnInit(): void {
-    this.getTexts();
+    void this.getTexts();
   }
 
   ngAfterViewInit(): void {
@@ -57,11 +73,15 @@ export class Body implements OnInit, AfterViewInit {
     this.updateDisplayFromFirstUnsubmitted();
   }
 
-  getTexts() {
+  async getTexts(): Promise<void> {
     // depending on the character size, words will be adjusted into array and into text-box
     try {
-      this.textsToMatch = TextToMatch.getDefaultWords();
-      this.updateDisplayFromFirstUnsubmitted();
+      const words = await firstValueFrom(this.wordApiService.getWords(this.selectedLanguage, 100));
+      this.ngZone.run(() => {
+        this.textsToMatch = TextToMatch.fromWords(words);
+        this.updateDisplayFromFirstUnsubmitted();
+        this.changeDetectorRef.detectChanges();
+      });
     } catch (error) {
       console.error('Error fetching texts:', error);
     }
@@ -169,10 +189,11 @@ export class Body implements OnInit, AfterViewInit {
     }
   }
 
-  refresh() {
+  async refresh() {
     // this.stopTimer();
     this.userTextInput = '';
-    this.getTexts();
+    this.isChallengeStarted = false;
+    await this.getTexts();
     this.setTimersInitals();
     this.updateDisplayFromFirstUnsubmitted();
   }
@@ -183,7 +204,19 @@ export class Body implements OnInit, AfterViewInit {
   }
 
   startTimer() {
+    if (!this.isChallengeStarted) {
+      this.isChallengeStarted = true;
+    }
     this.inputStart$.next();
+  }
+
+  async onLanguageChange(languageCode: string): Promise<void> {
+    if (this.isChallengeStarted) {
+      return;
+    }
+
+    this.selectedLanguage = (languageCode ?? '').trim();
+    await this.getTexts();
   }
 
   // stopTimer() {
